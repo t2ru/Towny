@@ -2,6 +2,7 @@ package com.palmergames.bukkit.towny.object;
 
 import com.palmergames.bukkit.towny.TownyEconomyHandler;
 import com.palmergames.bukkit.towny.TownyLogger;
+import com.palmergames.bukkit.towny.event.EconomyTransactionEvent;
 import com.palmergames.bukkit.towny.exceptions.EconomyException;
 import com.palmergames.bukkit.util.BukkitTools;
 import com.palmergames.util.StringMgmt;
@@ -29,8 +30,11 @@ public class TownyEconomyObject extends TownyObject {
 	public boolean pay(double amount, String reason) throws EconomyException {
 
 		boolean payed = _pay(amount);
-		if (payed)
+		if (payed) {
 			TownyLogger.logMoneyTransaction(this, amount, null, reason);
+			EconomyTransactionEvent ev = new EconomyTransactionEvent(this, amount, null, reason);
+			BukkitTools.getPluginManager().callEvent(ev);
+		}
 		return payed;
 	}
 
@@ -42,8 +46,9 @@ public class TownyEconomyObject extends TownyObject {
 	private boolean _pay(double amount) throws EconomyException {
 
 		if (canPayFromHoldings(amount)) {
-			if (TownyEconomyHandler.isActive())
+			if (TownyEconomyHandler.isActive()) {
 				return TownyEconomyHandler.subtract(getEconomyName(), amount, getBukkitWorld());
+                        }
 		}
 		return false;
 	}
@@ -57,13 +62,21 @@ public class TownyEconomyObject extends TownyObject {
 	 */
 	public void collect(double amount, String reason) throws EconomyException {
 
-		TownyEconomyHandler.add(getEconomyName(), amount, getBukkitWorld());
-		TownyLogger.logMoneyTransaction(null, amount, this, reason);
+		boolean payed = _collect(amount);
+		if (payed) {
+			TownyLogger.logMoneyTransaction(null, amount, this, reason);
+			EconomyTransactionEvent ev = new EconomyTransactionEvent(null, amount, this, reason);
+			BukkitTools.getPluginManager().callEvent(ev);
+		}
 	}
 
 	public void collect(double amount) throws EconomyException {
 
 		collect(amount, null);
+	}
+
+	public boolean _collect(double amount) throws EconomyException {
+		return TownyEconomyHandler.add(getEconomyName(), amount, getBukkitWorld());
 	}
 
 	/**
@@ -78,8 +91,11 @@ public class TownyEconomyObject extends TownyObject {
 	public boolean payTo(double amount, TownyEconomyObject collector, String reason) throws EconomyException {
 
 		boolean payed = _payTo(amount, collector);
-		if (payed)
+		if (payed) {
 			TownyLogger.logMoneyTransaction(this, amount, collector, reason);
+			EconomyTransactionEvent ev = new EconomyTransactionEvent(this, amount, collector, reason);
+			BukkitTools.getPluginManager().callEvent(ev);
+		}
 		return payed;
 	}
 
@@ -91,7 +107,7 @@ public class TownyEconomyObject extends TownyObject {
 	private boolean _payTo(double amount, TownyEconomyObject collector) throws EconomyException {
 
 		if (_pay(amount)) {
-			collector.collect(amount);
+			collector._collect(amount);
 			return true;
 		} else {
 			return false;
