@@ -7,6 +7,8 @@ import com.palmergames.bukkit.util.BukkitTools;
 import com.palmergames.util.StringMgmt;
 import org.bukkit.World;
 
+import econostats.EconomyStats;
+
 /**
  * Economy object which provides an interface with the Economy Handler.
  * 
@@ -27,11 +29,17 @@ public class TownyEconomyObject extends TownyObject {
 	 * @throws EconomyException
 	 */
 	public boolean pay(double amount, String reason) throws EconomyException {
-
-		boolean payed = _pay(amount);
-		if (payed)
-			TownyLogger.logMoneyTransaction(this, amount, null, reason);
-		return payed;
+		EconomyStats.enter();
+		try {
+			boolean payed = _pay(amount);
+			if (payed) {
+				TownyLogger.logMoneyTransaction(this, amount, null, reason);
+				EconomyStats.record(this.getEconomyName(), null, amount, "Towny:" + reason);
+			}
+			return payed;
+		} finally {
+			EconomyStats.exit();
+		}
 	}
 
 	public boolean pay(double amount) throws EconomyException {
@@ -56,9 +64,14 @@ public class TownyEconomyObject extends TownyObject {
 	 * @throws EconomyException
 	 */
 	public void collect(double amount, String reason) throws EconomyException {
-
-		TownyEconomyHandler.add(getEconomyName(), amount, getBukkitWorld());
-		TownyLogger.logMoneyTransaction(null, amount, this, reason);
+		EconomyStats.enter();
+		try {
+			TownyEconomyHandler.add(getEconomyName(), amount, getBukkitWorld());
+			TownyLogger.logMoneyTransaction(null, amount, this, reason);
+			EconomyStats.record(null, this.getEconomyName(), amount, "Towny:" + reason);
+		} finally {
+			EconomyStats.exit();
+		}
 	}
 
 	public void collect(double amount) throws EconomyException {
@@ -76,11 +89,17 @@ public class TownyEconomyObject extends TownyObject {
 	 * @throws EconomyException
 	 */
 	public boolean payTo(double amount, TownyEconomyObject collector, String reason) throws EconomyException {
-
-		boolean payed = _payTo(amount, collector);
-		if (payed)
-			TownyLogger.logMoneyTransaction(this, amount, collector, reason);
-		return payed;
+		EconomyStats.enter();
+		try {
+			boolean payed = _payTo(amount, collector);
+			if (payed) {
+				TownyLogger.logMoneyTransaction(this, amount, collector, reason);
+				EconomyStats.record(this.getEconomyName(), collector.getEconomyName(), amount, "Towny:" + reason);
+			}
+			return payed;
+		} finally {
+			EconomyStats.exit();
+		}
 	}
 
 	public boolean payTo(double amount, TownyEconomyObject collector) throws EconomyException {

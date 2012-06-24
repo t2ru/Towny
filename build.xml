@@ -28,6 +28,7 @@
                 <pathelement location="${env.LIB}/Questioner.jar"/>
                 <pathelement location="${env.LIB}/Vault.jar"/>
                 <pathelement location="${env.LIB}/citizensapi-2.0-SNAPSHOT.jar"/>
+                <pathelement location="${env.LIB}/econostats-0.1.0-SNAPSHOT.jar"/>
             </classpath>
         </javac>
     </target>   

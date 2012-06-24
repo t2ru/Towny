@@ -617,8 +617,11 @@ public class Towny extends JavaPlugin {
 
 		try {
 			Resident resident = TownyUniverse.getDataSource().getResident(name);
-			return resident.hasMode(mode);
-			
+			if (resident != null) {
+				return resident.hasMode(mode);
+			} else {
+				return false;
+			}
 		} catch (NotRegisteredException e) {
 			// Resident doesn't exist
 			return false;
